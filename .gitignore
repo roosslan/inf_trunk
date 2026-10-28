@@ -6,3 +6,6 @@ out/
 
 # Исходный GenInf из Windows DDK: программа Microsoft, в репозиторий не включается
 geninf.exe
+
+# Дистрибутив установщика
+dist/

@@ -1,0 +1,79 @@
+; Проект установки INF Editor для XPSetup (https://github.com/roosslan/cabxp64_installer).
+; Сборка: xpsbuild.exe --build installer\inf_editor.xsp --define APP_DIST=<директория с файлами>
+; В APP_DIST должны лежать inf_snapin.dll и inf_editor.msc.
+;
+; Регистрация оснастки задана значениями реестра, а не вызовом regsvr32: программа
+; удаления убирает эти значения и пустые разделы сама. Значения повторяют
+; DllRegisterServer из src/snapin/registration.cpp — при изменении регистрации
+; необходимо изменить оба места.
+
+[Version]
+Signature = "$XPSetup$"
+SifVersion = 1
+
+[Product]
+Name = "INF Editor"
+Version = 2.0.1
+Publisher = roosslan
+ProductCode = {E04C678C-B0F6-434C-9527-8CAAC2C371A7}
+InstallDir = "%PROGRAMFILES%\INF Editor"
+AllowChangeDir = 1
+Scope = machine
+
+[Directories]
+1 = %INSTALLDIR%
+
+[Components]
+program
+
+[Component.program]
+Description = "Оснастка MMC «Редактор INF»"
+Cabinet = program.cab
+Directory = 1
+Source = %APP_DIST%
+Include = inf_snapin.dll;inf_editor.msc
+Recurse = 0
+
+[Shortcuts]
+; расположение, имя, объект
+Programs, "INF Editor", "%INSTALLDIR%\inf_editor.msc"
+
+[Registry]
+; корень, раздел, параметр (пусто — значение по умолчанию), тип, значение
+; классы COM
+HKLM, "Software\Classes\CLSID\{2FCAD432-6FDA-4C23-9A31-14244910ED26}", "", REG_SZ, "Редактор INF"
+HKLM, "Software\Classes\CLSID\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\InprocServer32", "", REG_SZ, "%INSTALLDIR%\inf_snapin.dll"
+HKLM, "Software\Classes\CLSID\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\InprocServer32", ThreadingModel, REG_SZ, Apartment
+HKLM, "Software\Classes\CLSID\{B8CAA90F-7DEF-467A-A85D-13CC5EF42E8B}", "", REG_SZ, "Редактор INF: сведения"
+HKLM, "Software\Classes\CLSID\{B8CAA90F-7DEF-467A-A85D-13CC5EF42E8B}\InprocServer32", "", REG_SZ, "%INSTALLDIR%\inf_snapin.dll"
+HKLM, "Software\Classes\CLSID\{B8CAA90F-7DEF-467A-A85D-13CC5EF42E8B}\InprocServer32", ThreadingModel, REG_SZ, Apartment
+; описание оснастки для MMC
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}", NameString, REG_SZ, "Редактор INF"
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}", NameStringIndirect, REG_SZ, "@%INSTALLDIR%\inf_snapin.dll,-1"
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}", About, REG_SZ, "{B8CAA90F-7DEF-467A-A85D-13CC5EF42E8B}"
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}", Provider, REG_SZ, inf_editor
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}", Version, REG_SZ, 2.0.1
+; разделы без значений создаются пустым значением по умолчанию
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\StandAlone", "", REG_SZ, ""
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\NodeTypes\{89735F1C-BE2C-4DF0-9ACC-9B97AAA98C23}", "", REG_SZ, ""
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\NodeTypes\{CF13C9A4-2B55-4538-9055-111003B022E9}", "", REG_SZ, ""
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\NodeTypes\{1DE2B41E-09D7-471B-8DB6-AF89DA030FE6}", "", REG_SZ, ""
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\NodeTypes\{BCA823CC-C23F-483F-BF2E-FC69EF72A17B}", "", REG_SZ, ""
+HKLM, "Software\Microsoft\MMC\SnapIns\{2FCAD432-6FDA-4C23-9A31-14244910ED26}\NodeTypes\{E5FD810A-821F-493F-B461-BF85F4825D3A}", "", REG_SZ, ""
+HKLM, "Software\Microsoft\MMC\NodeTypes\{89735F1C-BE2C-4DF0-9ACC-9B97AAA98C23}", "", REG_SZ, "Редактор INF: корень"
+HKLM, "Software\Microsoft\MMC\NodeTypes\{CF13C9A4-2B55-4538-9055-111003B022E9}", "", REG_SZ, "Редактор INF: файл"
+HKLM, "Software\Microsoft\MMC\NodeTypes\{1DE2B41E-09D7-471B-8DB6-AF89DA030FE6}", "", REG_SZ, "Редактор INF: папка"
+HKLM, "Software\Microsoft\MMC\NodeTypes\{BCA823CC-C23F-483F-BF2E-FC69EF72A17B}", "", REG_SZ, "Редактор INF: секция"
+HKLM, "Software\Microsoft\MMC\NodeTypes\{E5FD810A-821F-493F-B461-BF85F4825D3A}", "", REG_SZ, "Редактор INF: элемент"
+; запуск командой inf_editor.msc из окна «Выполнить»
+HKLM, "Software\Microsoft\Windows\CurrentVersion\App Paths\inf_editor.msc", "", REG_SZ, "%INSTALLDIR%\inf_editor.msc"
+
+[KillProcesses]
+
+[RunAfterInstall]
+
+[Build]
+Output = ..\dist
+SingleFile = inf_editor_setup.exe
+Mode = both
+Compression = LZX:21

@@ -1,0 +1,27 @@
+﻿// Идентификаторы классов COM и типов узлов оснастки
+#pragma once
+
+#include <guiddef.h>
+
+// {2FCAD432-6FDA-4C23-9A31-14244910ED26} — оснастка
+inline constexpr GUID CLSID_InfSnapin = {0x2fcad432, 0x6fda, 0x4c23, {0x9a, 0x31, 0x14, 0x24, 0x49, 0x10, 0xed, 0x26}};
+// {B8CAA90F-7DEF-467A-A85D-13CC5EF42E8B} — сведения об оснастке (ISnapinAbout)
+inline constexpr GUID CLSID_InfSnapinAbout = {0xb8caa90f, 0x7def, 0x467a, {0xa8, 0x5d, 0x13, 0xcc, 0x5e, 0xf4, 0x2e, 0x8b}};
+
+// Типы узлов
+// {89735F1C-BE2C-4DF0-9ACC-9B97AAA98C23} — корневой узел
+inline constexpr GUID NODETYPE_Root = {0x89735f1c, 0xbe2c, 0x4df0, {0x9a, 0xcc, 0x9b, 0x97, 0xaa, 0xa9, 0x8c, 0x23}};
+// {CF13C9A4-2B55-4538-9055-111003B022E9} — INF-файл
+inline constexpr GUID NODETYPE_File = {0xcf13c9a4, 0x2b55, 0x4538, {0x90, 0x55, 0x11, 0x10, 0x03, 0xb0, 0x22, 0xe9}};
+// {1DE2B41E-09D7-471B-8DB6-AF89DA030FE6} — папка внутри файла
+inline constexpr GUID NODETYPE_Folder = {0x1de2b41e, 0x09d7, 0x471b, {0x8d, 0xb6, 0xaf, 0x89, 0xda, 0x03, 0x0f, 0xe6}};
+// {BCA823CC-C23F-483F-BF2E-FC69EF72A17B} — секция
+inline constexpr GUID NODETYPE_Section = {0xbca823cc, 0xc23f, 0x483f, {0xbf, 0x2e, 0xfc, 0x69, 0xef, 0x72, 0xa1, 0x7b}};
+// {E5FD810A-821F-493F-B461-BF85F4825D3A} — элемент в области результатов
+inline constexpr GUID NODETYPE_Item = {0xe5fd810a, 0x821f, 0x493f, {0xb4, 0x61, 0xbf, 0x85, 0xf4, 0x82, 0x5d, 0x3a}};
+
+// {31C5E020-CF05-410F-BECF-FBF2E3DD2CB2} — внутренний интерфейс для получения собственного объекта данных
+inline constexpr GUID IID_IInfDataObject = {0x31c5e020, 0xcf05, 0x410f, {0xbe, 0xcf, 0xfb, 0xf2, 0xe3, 0xdd, 0x2c, 0xb2}};
+
+inline constexpr const wchar_t *kSnapinName = L"Редактор INF";
+inline constexpr const wchar_t *kSnapinProvider = L"inf_editor";

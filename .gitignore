@@ -1,0 +1,8 @@
+# Результаты сборки
+build/
+out/
+.vs/
+*.user
+
+# Исходный GenInf из Windows DDK: программа Microsoft, в репозиторий не включается
+geninf.exe

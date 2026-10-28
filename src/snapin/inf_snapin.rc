@@ -1,0 +1,488 @@
+﻿// Ресурсы оснастки INF Editor
+#pragma code_page(65001)
+
+#include "resource.h"
+#include <winres.h>
+#include <commctrl.h>
+
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+
+IDI_APP ICON "../../res/app.ico"
+
+#define PAGE_STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+#define DLG_STYLE DS_SETFONT | DS_FIXEDSYS | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+#define WIZ_STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+#define RO_MULTI ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | WS_VSCROLL
+
+/////////////////////////////////////////////////////////////////////////////
+// Страницы свойств
+
+IDD_PAGE_SETTINGS DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Параметры"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "InfVerif (проверка из Windows Driver Kit)", -1, 7, 7, 238, 112
+    LTEXT           "Путь к InfVerif.exe (пусто — найти автоматически):", -1, 14, 21, 224, 8
+    EDITTEXT        IDC_VERIF_PATH, 14, 32, 170, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Обзор...", IDC_BROWSE, 188, 31, 50, 15
+    LTEXT           "", IDC_VERIF_FOUND, 14, 50, 224, 18
+    LTEXT           "Режим проверки:", -1, 14, 74, 224, 8
+    COMBOBOX        IDC_VERIF_MODE, 14, 85, 224, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Проверка выполняется для текущего текста файла, включая несохранённые изменения.", IDC_NOTE, 14, 102, 224, 16
+    LTEXT           "Параметры сохраняются в профиле пользователя и действуют во всех консолях.", -1, 7, 128, 238, 18
+END
+
+IDD_PAGE_FILE DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Файл"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Путь:", -1, 7, 9, 50, 8
+    EDITTEXT        IDC_PATH, 60, 7, 185, 14, ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "Кодировка:", -1, 7, 29, 50, 8
+    COMBOBOX        IDC_ENCODING, 60, 27, 120, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Концы строк:", -1, 7, 47, 50, 8
+    COMBOBOX        IDC_EOL, 60, 45, 120, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Символ Ctrl+Z (0x1A) в конце файла", IDC_CTRLZ, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 60, 63, 185, 10
+    GROUPBOX        "Сведения", -1, 7, 80, 238, 131
+    EDITTEXT        IDC_STATS, 14, 92, 224, 112, RO_MULTI | NOT WS_BORDER
+END
+
+IDD_PAGE_VERSION DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "[Version]"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Signature:", -1, 7, 9, 52, 8
+    COMBOBOX        IDC_SIGNATURE, 62, 7, 183, 60, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Class:", -1, 7, 27, 52, 8
+    COMBOBOX        IDC_CLASS, 62, 25, 183, 160, CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "", IDC_CLASS_INFO, 62, 41, 183, 16
+    LTEXT           "ClassGuid:", -1, 7, 61, 52, 8
+    EDITTEXT        IDC_CLASSGUID, 62, 59, 117, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Станд.", IDC_STD_GUID, 181, 58, 31, 15
+    PUSHBUTTON      "Новый", IDC_NEW_GUID, 214, 58, 31, 15
+    LTEXT           "ExtensionId:", -1, 7, 79, 52, 8
+    EDITTEXT        IDC_EXTID, 62, 77, 150, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Новый", IDC_NEW_EXTID, 214, 76, 31, 15
+    LTEXT           "Provider:", -1, 7, 97, 52, 8
+    EDITTEXT        IDC_PROVIDER, 62, 95, 183, 14, ES_AUTOHSCROLL
+    LTEXT           "", IDC_PROVIDER_RESOLVED, 62, 111, 183, 8
+    LTEXT           "DriverVer:", -1, 7, 125, 52, 8
+    CONTROL         "", IDC_DATE, "SysDateTimePick32", DTS_SHORTDATEFORMAT | WS_TABSTOP, 62, 123, 70, 14
+    EDITTEXT        IDC_VERSION, 135, 123, 50, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Сегодня", IDC_TODAY, 187, 122, 30, 15
+    PUSHBUTTON      "+1", IDC_BUMP, 219, 122, 26, 15
+    LTEXT           "CatalogFile:", -1, 7, 145, 52, 8
+    EDITTEXT        IDC_CATALOG, 62, 143, 183, 14, ES_AUTOHSCROLL
+    CONTROL         "PnpLockdown=1 (защита файлов драйвера от изменения)", IDC_LOCKDOWN, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 62, 163, 183, 10
+    LTEXT           "Изменения записываются в текст INF; сохранение файла — отдельной командой «Сохранить».", -1, 7, 185, 238, 18
+END
+
+IDD_PAGE_ENTRY DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Запись"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Секция:", -1, 7, 9, 45, 8
+    LTEXT           "", IDC_SECTION, 55, 9, 140, 8
+    LTEXT           "", IDC_LINE, 198, 9, 47, 8, SS_RIGHT
+    LTEXT           "Ключ:", -1, 7, 27, 45, 8
+    EDITTEXT        IDC_KEY, 55, 25, 190, 14, ES_AUTOHSCROLL
+    LTEXT           "Значение:", -1, 7, 45, 45, 8
+    EDITTEXT        IDC_VALUE, 55, 43, 190, 14, ES_AUTOHSCROLL
+    LTEXT           "Комментарий:", -1, 7, 63, 45, 8
+    EDITTEXT        IDC_COMMENT, 55, 61, 190, 14, ES_AUTOHSCROLL
+    LTEXT           "Значения разделяются запятыми; ключ можно оставить пустым (AddReg, списки файлов).", -1, 55, 78, 190, 16
+    GROUPBOX        "Описание", -1, 7, 98, 238, 113
+    EDITTEXT        IDC_HELPTEXT, 14, 110, 224, 94, RO_MULTI | NOT WS_BORDER
+END
+
+IDD_PAGE_DEVICE DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Устройство"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Описание:", -1, 7, 9, 60, 8
+    EDITTEXT        IDC_DESC, 70, 7, 175, 14, ES_AUTOHSCROLL
+    LTEXT           "Текст строки:", -1, 7, 27, 60, 8
+    EDITTEXT        IDC_STRING_VALUE, 70, 25, 175, 14, ES_AUTOHSCROLL
+    LTEXT           "", IDC_DESC_RESOLVED, 70, 41, 175, 8
+    LTEXT           "ID оборудования:", -1, 7, 57, 60, 8
+    EDITTEXT        IDC_HWID, 70, 55, 175, 14, ES_AUTOHSCROLL
+    LTEXT           "Совместимые ID:", -1, 7, 75, 60, 8
+    EDITTEXT        IDC_COMPAT, 70, 73, 175, 14, ES_AUTOHSCROLL
+    LTEXT           "через запятую", -1, 70, 89, 175, 8
+    LTEXT           "Секция установки:", -1, 7, 103, 60, 8
+    COMBOBOX        IDC_INSTALL, 70, 101, 175, 120, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Сведения", -1, 7, 122, 238, 89
+    LTEXT           "Секция моделей:", -1, 14, 135, 60, 8
+    LTEXT           "", IDC_MODELS, 77, 135, 161, 8
+    LTEXT           "Архитектура:", -1, 14, 149, 60, 8
+    LTEXT           "", IDC_ARCH, 77, 149, 161, 8
+    LTEXT           "Установка:", -1, 14, 163, 60, 8
+    LTEXT           "", IDC_HINT, 77, 163, 161, 40
+END
+
+IDD_PAGE_STRING DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Строка"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Секция:", -1, 7, 9, 45, 8
+    LTEXT           "", IDC_SECTION, 55, 9, 190, 8
+    LTEXT           "Ключ:", -1, 7, 27, 45, 8
+    EDITTEXT        IDC_KEY, 55, 25, 190, 14, ES_AUTOHSCROLL
+    LTEXT           "Значение:", -1, 7, 45, 45, 8
+    EDITTEXT        IDC_VALUE, 55, 43, 190, 30, ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "", IDC_USES, 55, 77, 190, 8
+    GROUPBOX        "Значения в других секциях строк", -1, 7, 92, 238, 119
+    EDITTEXT        IDC_OTHERS, 14, 104, 224, 100, RO_MULTI | NOT WS_BORDER
+END
+
+IDD_PAGE_SECTION DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Секция"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Имя:", -1, 7, 9, 40, 8
+    EDITTEXT        IDC_NAME, 50, 7, 195, 14, ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "", IDC_LINE, 50, 24, 195, 8
+    EDITTEXT        IDC_HELPTEXT, 7, 38, 238, 173, RO_MULTI | ES_AUTOHSCROLL | WS_HSCROLL
+END
+
+IDD_PAGE_PROBLEM DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Проблема"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Важность:", -1, 7, 9, 50, 8
+    LTEXT           "", IDC_SEVERITY, 60, 9, 185, 8
+    LTEXT           "Код:", -1, 7, 21, 50, 8
+    LTEXT           "", IDC_CODE, 60, 21, 185, 8
+    LTEXT           "Источник:", -1, 7, 33, 50, 8
+    LTEXT           "", IDC_SOURCE, 60, 33, 185, 8
+    LTEXT           "Строка:", -1, 7, 45, 50, 8
+    LTEXT           "", IDC_LINE, 60, 45, 185, 8
+    LTEXT           "Секция:", -1, 7, 57, 50, 8
+    LTEXT           "", IDC_SECTION, 60, 57, 185, 8
+    LTEXT           "Сообщение:", -1, 7, 73, 238, 8
+    EDITTEXT        IDC_MESSAGE, 7, 84, 238, 50, RO_MULTI
+    LTEXT           "Текст строки:", -1, 7, 140, 238, 8
+    EDITTEXT        IDC_LINETEXT, 7, 151, 238, 60, RO_MULTI | ES_AUTOHSCROLL | WS_HSCROLL
+END
+
+IDD_PAGE_INFO DIALOGEX 0, 0, 252, 218
+STYLE PAGE_STYLE
+CAPTION "Сведения"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "", IDC_OUTPUT, "SysListView32", LVS_REPORT | LVS_NOCOLUMNHEADER | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP, 7, 7, 238, 204
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Диалоги
+
+IDD_EXPORT DIALOGEX 0, 0, 330, 196
+STYLE DLG_STYLE
+CAPTION "Экспорт драйвера"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_STATS, 7, 7, 316, 44, RO_MULTI
+    LTEXT           "Файл архива:", IDC_PROMPT, 7, 58, 316, 8
+    EDITTEXT        IDC_PATH, 7, 69, 262, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Обзор...", IDC_BROWSE, 273, 68, 50, 15
+    CONTROL         "Все файлы в корень архива, пути в INF исправить (установка из распакованного архива)", IDC_KIND0, "Button", BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP, 7, 92, 316, 10
+    CONTROL         "Пакет без изменений (структура директорий как в хранилище драйверов)", IDC_KIND1, "Button", BS_AUTORADIOBUTTON, 7, 105, 316, 10
+    LTEXT           "", IDC_NOTE, 7, 121, 316, 46
+    DEFPUSHBUTTON   "Экспорт", IDOK, 219, 175, 50, 14, WS_GROUP
+    PUSHBUTTON      "Отмена", IDCANCEL, 273, 175, 50, 14
+END
+
+
+IDD_TEXT_EDITOR DIALOGEX 0, 0, 460, 320
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX
+CAPTION "Текст INF"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "", IDC_RICHEDIT, "RICHEDIT50W", ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | ES_NOHIDESEL | WS_VSCROLL | WS_HSCROLL | WS_BORDER | WS_TABSTOP, 7, 7, 446, 220
+    LTEXT           "Найти:", -1, 7, 234, 26, 8
+    EDITTEXT        IDC_FIND, 35, 232, 120, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Найти далее", IDC_FIND_NEXT, 158, 231, 55, 15
+    PUSHBUTTON      "Проверить", IDC_CHECK, 216, 231, 55, 15
+    LTEXT           "", IDC_STATUS, 276, 234, 177, 8
+    LISTBOX         IDC_PROBLEMS, 7, 250, 446, 44, LBS_NOINTEGRALHEIGHT | LBS_NOTIFY | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "ОК", IDOK, 349, 299, 50, 15
+    PUSHBUTTON      "Отмена", IDCANCEL, 403, 299, 50, 15
+END
+
+IDD_ADD_ENTRY DIALOGEX 0, 0, 280, 104
+STYLE DLG_STYLE
+CAPTION "Добавить запись"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Секция:", -1, 7, 9, 45, 8
+    LTEXT           "", IDC_SECTION, 55, 9, 218, 8
+    LTEXT           "Ключ:", -1, 7, 27, 45, 8
+    EDITTEXT        IDC_KEY, 55, 25, 218, 14, ES_AUTOHSCROLL
+    LTEXT           "Значение:", -1, 7, 45, 45, 8
+    EDITTEXT        IDC_VALUE, 55, 43, 218, 14, ES_AUTOHSCROLL
+    LTEXT           "Ключ можно оставить пустым: тогда записывается только значение (AddReg, списки файлов).", IDC_HINT, 55, 60, 218, 16
+    DEFPUSHBUTTON   "ОК", IDOK, 169, 83, 50, 14
+    PUSHBUTTON      "Отмена", IDCANCEL, 223, 83, 50, 14
+END
+
+IDD_ADD_SECTION DIALOGEX 0, 0, 300, 200
+STYLE DLG_STYLE
+CAPTION "Добавить секцию"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Имя секции:", -1, 7, 9, 50, 8
+    COMBOBOX        IDC_NAME, 60, 7, 233, 120, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "В списке — секции, на которые есть ссылки, но которых нет в файле.", -1, 60, 23, 233, 8
+    LTEXT           "Содержимое (необязательно):", -1, 7, 38, 286, 8
+    EDITTEXT        IDC_CONTENT, 7, 49, 286, 124, ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    DEFPUSHBUTTON   "ОК", IDOK, 189, 179, 50, 14
+    PUSHBUTTON      "Отмена", IDCANCEL, 243, 179, 50, 14
+END
+
+IDD_ADD_DEVICE DIALOGEX 0, 0, 300, 236
+STYLE DLG_STYLE
+CAPTION "Добавить устройство"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Описание:", -1, 7, 9, 65, 8
+    EDITTEXT        IDC_DESC, 75, 7, 218, 14, ES_AUTOHSCROLL
+    LTEXT           "Ключ строки:", -1, 7, 27, 65, 8
+    EDITTEXT        IDC_KEY, 75, 25, 218, 14, ES_AUTOHSCROLL
+    LTEXT           "Пусто — описание записывается прямо в запись модели.", -1, 75, 41, 218, 8
+    LTEXT           "ID оборудования:", -1, 7, 57, 65, 8
+    EDITTEXT        IDC_HWID, 75, 55, 218, 14, ES_AUTOHSCROLL
+    LTEXT           "Совместимые ID:", -1, 7, 75, 65, 8
+    EDITTEXT        IDC_COMPAT, 75, 73, 218, 14, ES_AUTOHSCROLL
+    LTEXT           "Секция установки:", -1, 7, 93, 65, 8
+    COMBOBOX        IDC_INSTALL, 75, 91, 218, 120, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Добавить в секции моделей:", -1, 7, 111, 286, 8
+    LISTBOX         IDC_MODELS_LIST, 7, 122, 286, 66, LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "", IDC_HINT, 7, 191, 286, 16
+    DEFPUSHBUTTON   "ОК", IDOK, 189, 215, 50, 14
+    PUSHBUTTON      "Отмена", IDCANCEL, 243, 215, 50, 14
+END
+
+IDD_ADD_STRING DIALOGEX 0, 0, 280, 96
+STYLE DLG_STYLE
+CAPTION "Добавить строку"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Секция:", -1, 7, 9, 45, 8
+    COMBOBOX        IDC_SECTION, 55, 7, 218, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Ключ:", -1, 7, 27, 45, 8
+    EDITTEXT        IDC_KEY, 55, 25, 218, 14, ES_AUTOHSCROLL
+    LTEXT           "Значение:", -1, 7, 45, 45, 8
+    EDITTEXT        IDC_VALUE, 55, 43, 218, 14, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "ОК", IDOK, 169, 75, 50, 14
+    PUSHBUTTON      "Отмена", IDCANCEL, 223, 75, 50, 14
+END
+
+IDD_ADD_FILE DIALOGEX 0, 0, 290, 138
+STYLE DLG_STYLE
+CAPTION "Добавить файл"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Имя файла:", -1, 7, 9, 75, 8
+    EDITTEXT        IDC_NAME, 85, 7, 144, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Обзор...", IDC_BROWSE, 233, 6, 50, 15
+    LTEXT           "Секция копирования:", -1, 7, 27, 75, 8
+    COMBOBOX        IDC_LIST, 85, 25, 198, 100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Диск:", -1, 7, 45, 75, 8
+    EDITTEXT        IDC_DISK, 85, 43, 40, 14, ES_AUTOHSCROLL
+    LTEXT           "Поддиректория:", -1, 7, 63, 75, 8
+    EDITTEXT        IDC_SUBDIR, 85, 61, 198, 14, ES_AUTOHSCROLL
+    LTEXT           "Файл добавляется в секцию копирования и в [SourceDisksFiles]. Новая секция копирования подключается директивой CopyFiles к секциям установки.", IDC_HINT, 7, 81, 276, 26
+    DEFPUSHBUTTON   "ОК", IDOK, 179, 117, 50, 14
+    PUSHBUTTON      "Отмена", IDCANCEL, 233, 117, 50, 14
+END
+
+IDD_INPUT DIALOGEX 0, 0, 260, 76
+STYLE DLG_STYLE
+CAPTION "Ввод"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "", IDC_PROMPT, 7, 7, 246, 20
+    EDITTEXT        IDC_VALUE, 7, 30, 246, 14, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "ОК", IDOK, 149, 55, 50, 14
+    PUSHBUTTON      "Отмена", IDCANCEL, 203, 55, 50, 14
+END
+
+IDD_OUTPUT DIALOGEX 0, 0, 420, 260
+STYLE DLG_STYLE | WS_THICKFRAME
+CAPTION "Вывод InfVerif"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_OUTPUT, 7, 7, 406, 226, RO_MULTI | ES_AUTOHSCROLL | WS_HSCROLL
+    DEFPUSHBUTTON   "Закрыть", IDOK, 363, 239, 50, 14
+END
+
+IDD_DEVICE_ROW DIALOGEX 0, 0, 280, 86
+STYLE DLG_STYLE
+CAPTION "Устройство"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Описание:", -1, 7, 9, 65, 8
+    EDITTEXT        IDC_DESC, 75, 7, 198, 14, ES_AUTOHSCROLL
+    LTEXT           "ID оборудования:", -1, 7, 27, 65, 8
+    EDITTEXT        IDC_HWID, 75, 25, 198, 14, ES_AUTOHSCROLL
+    LTEXT           "Совместимые ID:", -1, 7, 45, 65, 8
+    EDITTEXT        IDC_COMPAT, 75, 43, 198, 14, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "ОК", IDOK, 169, 65, 50, 14
+    PUSHBUTTON      "Отмена", IDCANCEL, 223, 65, 50, 14
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Страницы мастера (Wizard97, внутренние страницы 317x143)
+
+IDD_WIZ_KIND DIALOGEX 0, 0, 317, 143
+STYLE WIZ_STYLE
+CAPTION "Мастер создания INF"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "", IDC_KIND0, "Button", BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP, 21, 4, 150, 10
+    CONTROL         "", IDC_KIND1, "Button", BS_AUTORADIOBUTTON, 21, 16, 150, 10
+    CONTROL         "", IDC_KIND2, "Button", BS_AUTORADIOBUTTON, 21, 28, 150, 10
+    CONTROL         "", IDC_KIND3, "Button", BS_AUTORADIOBUTTON, 21, 40, 150, 10
+    CONTROL         "", IDC_KIND4, "Button", BS_AUTORADIOBUTTON, 21, 52, 150, 10
+    CONTROL         "", IDC_KIND5, "Button", BS_AUTORADIOBUTTON, 21, 64, 150, 10
+    CONTROL         "", IDC_KIND6, "Button", BS_AUTORADIOBUTTON, 21, 76, 150, 10
+    LTEXT           "", IDC_KIND_HELP, 178, 4, 125, 82
+    LTEXT           "Имя INF-файла:", -1, 21, 101, 60, 8
+    EDITTEXT        IDC_INFNAME, 84, 99, 120, 14, ES_AUTOHSCROLL | WS_GROUP
+    CONTROL         "Поясняющие комментарии в тексте", IDC_COMMENTS, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 84, 119, 200, 10
+END
+
+IDD_WIZ_GENERAL DIALOGEX 0, 0, 317, 143
+STYLE WIZ_STYLE
+CAPTION "Мастер создания INF"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Поставщик:", -1, 21, 4, 60, 8
+    EDITTEXT        IDC_PROVIDER, 84, 2, 100, 14, ES_AUTOHSCROLL
+    LTEXT           "Производитель:", -1, 190, 4, 55, 8
+    EDITTEXT        IDC_MANUFACTURER, 246, 2, 64, 14, ES_AUTOHSCROLL
+    LTEXT           "Класс:", -1, 21, 22, 60, 8
+    COMBOBOX        IDC_CLASS, 84, 20, 100, 160, CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "", IDC_CLASS_INFO, 190, 22, 120, 16
+    LTEXT           "ClassGuid:", -1, 21, 40, 60, 8
+    EDITTEXT        IDC_CLASSGUID, 84, 38, 170, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "Новый", IDC_NEW_GUID, 258, 37, 52, 15
+    CONTROL         "Собственный класс ([ClassInstall32])", IDC_CUSTOM_CLASS, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 84, 56, 140, 10
+    EDITTEXT        IDC_CLASS_DESC, 226, 54, 84, 14, ES_AUTOHSCROLL
+    LTEXT           "DriverVer:", -1, 21, 76, 60, 8
+    CONTROL         "", IDC_DATE, "SysDateTimePick32", DTS_SHORTDATEFORMAT | WS_TABSTOP, 84, 74, 70, 14
+    EDITTEXT        IDC_VERSION, 158, 74, 60, 14, ES_AUTOHSCROLL
+    LTEXT           "Каталог:", -1, 21, 94, 60, 8
+    EDITTEXT        IDC_CATALOG, 84, 92, 134, 14, ES_AUTOHSCROLL
+    LTEXT           "пусто — по имени INF", -1, 222, 94, 88, 8
+    CONTROL         "PnpLockdown=1", IDC_LOCKDOWN, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 84, 112, 120, 10
+END
+
+IDD_WIZ_PLATFORM DIALOGEX 0, 0, 317, 143
+STYLE WIZ_STYLE
+CAPTION "Мастер создания INF"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "x64 (NTamd64)", IDC_ARCH_AMD64, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 21, 6, 150, 10
+    CONTROL         "ARM64 (NTarm64)", IDC_ARCH_ARM64, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 21, 20, 150, 10
+    CONTROL         "x86 (NTx86)", IDC_ARCH_X86, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 21, 34, 150, 10
+    LTEXT           "Минимальная версия Windows (TargetOSVersion):", -1, 21, 56, 280, 8
+    COMBOBOX        IDC_OSVER, 21, 67, 200, 100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Файлы в Driver Store (DirID 13) поддерживаются с Windows 10 1709, поэтому без ограничения версии мастер всё равно подставит 10.0...16299, если выбран DirID 13.", IDC_NOTE, 21, 88, 280, 30
+END
+
+IDD_WIZ_DEVICES DIALOGEX 0, 0, 317, 143
+STYLE WIZ_STYLE
+CAPTION "Мастер создания INF"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "", IDC_DEVICES, "SysListView32", LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP, 21, 2, 230, 106
+    PUSHBUTTON      "Добавить...", IDC_ADD, 256, 2, 54, 15
+    PUSHBUTTON      "Изменить...", IDC_EDIT, 256, 20, 54, 15
+    PUSHBUTTON      "Удалить", IDC_REMOVE, 256, 38, 54, 15
+    LTEXT           "Примеры ID: USB\\VID_045E&&PID_0040, PCI\\VEN_8086&&DEV_1234, ACPI\\PNP0501, Root\\MyDevice (программное устройство).", IDC_HINT, 21, 112, 289, 24
+END
+
+IDD_WIZ_FILES DIALOGEX 0, 0, 317, 143
+STYLE WIZ_STYLE
+CAPTION "Мастер создания INF"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Служба:", -1, 21, 4, 50, 8
+    EDITTEXT        IDC_SERVICE, 74, 2, 80, 14, ES_AUTOHSCROLL
+    LTEXT           "Описание:", -1, 160, 4, 45, 8
+    EDITTEXT        IDC_SERVICE_DESC, 206, 2, 104, 14, ES_AUTOHSCROLL
+    LTEXT           "Файл:", -1, 21, 22, 50, 8
+    EDITTEXT        IDC_BINARY, 74, 20, 80, 14, ES_AUTOHSCROLL
+    LTEXT           "Директория:", -1, 160, 22, 45, 8
+    COMBOBOX        IDC_DESTDIR, 206, 20, 104, 80, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "StartType:", -1, 21, 40, 50, 8
+    COMBOBOX        IDC_STARTTYPE, 74, 38, 236, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "ErrorControl:", -1, 21, 58, 50, 8
+    COMBOBOX        IDC_ERRORCONTROL, 74, 56, 236, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Доп. файлы:", -1, 21, 76, 50, 8
+    EDITTEXT        IDC_EXTRA, 74, 74, 236, 26, ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "KMDF:", -1, 21, 108, 25, 8
+    EDITTEXT        IDC_KMDF, 47, 106, 30, 14, ES_AUTOHSCROLL
+    LTEXT           "UMDF:", -1, 82, 108, 25, 8
+    EDITTEXT        IDC_UMDF, 108, 106, 36, 14, ES_AUTOHSCROLL
+    LTEXT           "Интерфейс:", -1, 150, 108, 42, 8
+    EDITTEXT        IDC_IFACE_GUID, 192, 106, 92, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "...", IDC_NEW_IFACE, 287, 105, 23, 15
+    LTEXT           "", IDC_HINT, 21, 126, 289, 16
+END
+
+IDD_WIZ_PREVIEW DIALOGEX 0, 0, 317, 143
+STYLE WIZ_STYLE
+CAPTION "Мастер создания INF"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_PREVIEW, 21, 2, 289, 124, RO_MULTI | ES_AUTOHSCROLL | WS_HSCROLL
+    LTEXT           "", IDC_STATUS, 21, 130, 289, 10
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Версия
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,0,1,0
+ PRODUCTVERSION 2,0,1,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041904b0"
+        BEGIN
+            VALUE "FileDescription", "Оснастка MMC «Редактор INF»"
+            VALUE "FileVersion", "2.0.1.0"
+            VALUE "InternalName", "inf_snapin"
+            VALUE "OriginalFilename", "inf_snapin.dll"
+            VALUE "ProductName", "INF Editor"
+            VALUE "ProductVersion", "2.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x419, 1200
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Строки (NameStringIndirect оснастки ссылается на строку 1)
+
+STRINGTABLE
+BEGIN
+    1   "Редактор INF"
+END

@@ -8,7 +8,7 @@ on:
 
 jobs:
   windows:
-    runs-on: windows-latest
+    runs-on: windows-2022          # Visual Studio 2022: её же требует сборка xpsbuild.exe в action установщика
     permissions:
       contents: write          # для публикации релиза по тегу
     steps:

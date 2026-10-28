@@ -48,7 +48,8 @@ public:
     {
         m_notify = notify;
         m_ownsNotify = ownsNotify;
-        MMCPropPageCallback(&m_psp);
+        // MMCPropPageCallback не используется: она из mmc.lib и несовместима со статической MFC.
+        // Состояние модуля MFC переключает pageCallback.
         return CreatePropertySheetPage(&m_psp);
     }
 
@@ -107,6 +108,8 @@ protected:
 private:
     static UINT CALLBACK pageCallback(HWND hwnd, UINT msg, LPPROPSHEETPAGE ppsp)
     {
+        // окно свойств MMC работает в своём потоке: страницы создаются в состоянии модуля оснастки
+        MANAGE_STATE();
         auto *page = static_cast<CMmcPage *>(reinterpret_cast<CPropertyPage *>(ppsp->lParam));
         const UINT r = page->m_mfcCallback ? page->m_mfcCallback(hwnd, msg, ppsp) : 1;
         if (msg == PSPCB_RELEASE)

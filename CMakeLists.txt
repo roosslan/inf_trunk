@@ -9,6 +9,9 @@ if(NOT MSVC)
     message(FATAL_ERROR "Оснастка MMC собирается только компилятором MSVC")
 endif()
 
+# статическая среда выполнения (и MFC): оснастке не нужен VC++ Redistributable
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 add_compile_definitions(UNICODE _UNICODE NOMINMAX _WIN32_WINNT=0x0A00)
 add_compile_options(/utf-8 /W4 /permissive- /Zc:__cplusplus /MP)
 
@@ -39,7 +42,7 @@ add_test(NAME inf_editor_tests COMMAND inf_editor_tests)
 
 option(INF_EDITOR_SNAPIN "Собирать оснастку MMC" ON)
 
-# Оснастка MMC (MFC в виде общей DLL)
+# Оснастка MMC (MFC подключена статически)
 if(INF_EDITOR_SNAPIN)
 add_library(inf_snapin SHARED
     src/snapin/stdafx.cpp
@@ -60,9 +63,10 @@ add_library(inf_snapin SHARED
     src/snapin/inf_snapin.def
 )
 target_include_directories(inf_snapin PRIVATE src/snapin)
-target_compile_definitions(inf_snapin PRIVATE _AFXDLL _USRDLL _WINDLL APP_VERSION=L"${PROJECT_VERSION}")
+target_compile_definitions(inf_snapin PRIVATE _USRDLL _WINDLL APP_VERSION=L"${PROJECT_VERSION}")
 set_target_properties(inf_snapin PROPERTIES
     OUTPUT_NAME inf_snapin)
 target_precompile_headers(inf_snapin PRIVATE src/snapin/stdafx.h)
-target_link_libraries(inf_snapin PRIVATE infcore mmc comctl32 shell32 shlwapi uxtheme)
+# статическая MFC указывается перед mmc.lib: иначе символы MFC берутся из её модуля apimfc.obj
+target_link_libraries(inf_snapin PRIVATE infcore $<IF:$<CONFIG:Debug>,uafxcwd,uafxcw> mmc comctl32 shell32 shlwapi uxtheme)
 endif()

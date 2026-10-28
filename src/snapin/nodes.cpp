@@ -113,6 +113,8 @@ std::unique_ptr<SystemSnapshot> &snapshotSlot()
     return s;
 }
 
+bool g_showHidden = false;
+
 std::wstring classKey(const inf::DeviceInfo &d)
 {
     return d.classGuid.empty() ? L"class:" + inf::lower(d.className) : d.classGuid;
@@ -120,6 +122,10 @@ std::wstring classKey(const inf::DeviceInfo &d)
 
 std::wstring deviceState(const inf::DeviceInfo &d)
 {
+    if (!d.present)
+        return L"не подключено";
+    if (d.hidden)
+        return L"скрытое";
     if (d.hasProblem)
         return L"ошибка, код " + std::to_wstring(d.problem);
     if (d.infName.empty())
@@ -135,7 +141,7 @@ const SystemSnapshot &systemSnapshot()
     if (!s) {
         s = std::make_unique<SystemSnapshot>();
         CWaitCursor wait;
-        s->devices = inf::enumerateDevices(&s->error);
+        s->devices = inf::enumerateDevices(g_showHidden, &s->error);
         s->packages = inf::enumerateDriverPackages(s->devices, true);
     }
     return *s;
@@ -144,6 +150,19 @@ const SystemSnapshot &systemSnapshot()
 void reloadSystemSnapshot()
 {
     snapshotSlot().reset();
+}
+
+void setShowHiddenDevices(bool show)
+{
+    if (g_showHidden == show)
+        return;
+    g_showHidden = show;
+    reloadSystemSnapshot();
+}
+
+bool showHiddenDevices()
+{
+    return g_showHidden;
 }
 
 bool isSystemNode(NodeType t)
@@ -229,9 +248,11 @@ int Node::image() const
 {
     switch (type) {
     case NodeType::Root: return ImgApp;
-    case NodeType::Hardware: return ImgManufacturer;
-    case NodeType::DeviceClass: return ImgDevice;
-    case NodeType::DriverPackages: return ImgCopyFile;
+    // как в Диспетчере устройств: корень — значок компьютера, классы — значки классов
+    case NodeType::Hardware: return classImage(L"{4d36e966-e325-11ce-bfc1-08002be10318}");
+    case NodeType::DeviceClass: return classImage(key);
+    // значок INF-файла, как в Проводнике
+    case NodeType::DriverPackages: return ImgFile;
     case NodeType::File: return ImgFile;
     case NodeType::Version: return ImgSettings;
     case NodeType::Manufacturer: return ImgManufacturer;
@@ -409,7 +430,7 @@ std::vector<std::shared_ptr<ResultRow>> buildRows(const Node &node)
             r->type = RowType::SysDevice;
             r->key = d.instanceId;
             r->device = d;
-            r->image = d.hasProblem ? ImgError : ImgDevice;
+            r->image = d.hasProblem ? ImgWarning : classImage(d.classGuid);
             r->columns = {d.description, d.driverProvider, d.driverVersion, d.driverDate, d.infName,
                           d.infName.empty() ? L"" : (d.thirdParty() ? L"сторонний" : L"Windows"),
                           d.hardwareIds.empty() ? L"" : d.hardwareIds.front(), deviceState(d)};
@@ -423,7 +444,7 @@ std::vector<std::shared_ptr<ResultRow>> buildRows(const Node &node)
             r->type = RowType::Package;
             r->key = p.publishedName;
             r->package = p;
-            r->image = ImgCopyFile;
+            r->image = ImgFile;
             r->columns = {p.publishedName, p.originalName, p.provider, p.className, p.driverVer, num(p.devices), p.catalog};
             rows.push_back(r);
         }

@@ -23,6 +23,7 @@ bool comCanUnload();
 struct SnapinSettings {
     std::wstring infVerifPath;          // пусто — искать автоматически
     std::wstring infVerifMode = L"/w";
+    bool showHiddenDevices = false;     // ветка «Устройства компьютера»
     std::vector<std::wstring> session;  // открытые файлы
 
     static SnapinSettings load();

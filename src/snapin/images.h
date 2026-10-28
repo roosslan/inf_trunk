@@ -1,6 +1,8 @@
 ﻿// Значки узлов и элементов оснастки
 #pragma once
 
+#include <string>
+
 enum Image {
     ImgApp,
     ImgFolder,
@@ -18,6 +20,10 @@ enum Image {
     ImgSettings,
     ImgCount
 };
+
+// Значок класса устройств, как в Диспетчере устройств (индекс после встроенных значков);
+// для неизвестного класса — ImgDevice
+int classImage(const std::wstring &classGuid);
 
 // Заполнить список изображений MMC (области дерева или результатов)
 void loadImages(IImageList *list);

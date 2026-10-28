@@ -92,6 +92,9 @@ struct SystemSnapshot {
 };
 const SystemSnapshot &systemSnapshot();
 void reloadSystemSnapshot();
+// Показывать отключённые и скрытые устройства (как «Показать скрытые устройства» в devmgmt.msc)
+void setShowHiddenDevices(bool show);
+bool showHiddenDevices();
 bool isSystemNode(NodeType t);
 
 // Производитель по ключу узла (имя записи и секция моделей)

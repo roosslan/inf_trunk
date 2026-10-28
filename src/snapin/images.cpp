@@ -5,7 +5,12 @@
 #include "resource.h"
 #include "snapinapp.h"
 
+#include "infstr.h"
+
+#include <setupapi.h>
+
 #include <algorithm>
+#include <functional>
 #include <vector>
 
 namespace {
@@ -108,19 +113,25 @@ std::vector<RGBQUAD> iconPixels(HICON h, int size)
     return px;
 }
 
+// Значок n-го элемента ленты нужного размера
+using IconSource = std::function<HICON(int index, bool large)>;
+
 // Лента значков одного размера: прозрачные пиксели — цвет-маска,
 // полупрозрачные смешиваются с цветом фона окна
-HBITMAP makeStrip(int size, int count, const Image *images, COLORREF mask, COLORREF background)
+HBITMAP makeStrip(int size, int count, const IconSource &source, COLORREF mask, COLORREF background)
 {
     const int width = size * count;
     std::vector<RGBQUAD> strip(size_t(width) * size);
     const BYTE bgR = GetRValue(background), bgG = GetGValue(background), bgB = GetBValue(background);
+    auto empty = [](const std::vector<RGBQUAD> &px) {
+        return std::all_of(px.begin(), px.end(), [](const RGBQUAD &q) { return q.rgbReserved < 8; });
+    };
     for (int n = 0; n < count; ++n) {
-        std::vector<RGBQUAD> px = iconPixels(icon(images[n], size > 16), size);
+        std::vector<RGBQUAD> px = iconPixels(source(n, size > 16), size);
         // у некоторых системных значков нет изображения нужного размера: берётся другой размер
-        if (std::all_of(px.begin(), px.end(), [](const RGBQUAD &q) { return q.rgbReserved < 8; }))
-            px = iconPixels(icon(images[n], size <= 16), size);
-        if (std::all_of(px.begin(), px.end(), [](const RGBQUAD &q) { return q.rgbReserved < 8; }))
+        if (empty(px))
+            px = iconPixels(source(n, size <= 16), size);
+        if (empty(px))
             px = iconPixels(stockIcon(SIID_DOCNOASSOC, size > 16), size);
         for (int y = 0; y < size; ++y) {
             for (int x = 0; x < size; ++x) {
@@ -156,6 +167,59 @@ HBITMAP makeStrip(int size, int count, const Image *images, COLORREF mask, COLOR
     return bmp;
 }
 
+// ------------------------------------------------------------------ значки классов устройств
+
+// Значки всех классов устройств системы, как в Диспетчере устройств: малые — из списка
+// изображений классов SetupAPI, большие — SetupDiLoadClassIcon. Набор строится один раз.
+struct ClassIcons {
+    std::vector<std::wstring> guids;    // в нижнем регистре, в фигурных скобках
+    std::vector<HICON> smallIcons;
+    std::vector<HICON> largeIcons;
+};
+
+const ClassIcons &classIcons()
+{
+    static ClassIcons icons;
+    static bool built = false;
+    if (built)
+        return icons;
+    built = true;
+    DWORD count = 0;
+    SetupDiBuildClassInfoList(0, nullptr, 0, &count);
+    std::vector<GUID> list(count);
+    if (count == 0 || !SetupDiBuildClassInfoList(0, list.data(), count, &count))
+        return icons;
+    SP_CLASSIMAGELIST_DATA images{};
+    images.cbSize = sizeof(images);
+    const bool haveList = SetupDiGetClassImageList(&images) != FALSE;
+    for (DWORD i = 0; i < count; ++i) {
+        const GUID &g = list[i];
+        HICON smallIcon = nullptr, largeIcon = nullptr;
+        int index = 0;
+        if (haveList && SetupDiGetClassImageIndex(&images, &g, &index))
+            smallIcon = ImageList_GetIcon(images.ImageList, index, ILD_NORMAL);
+        SetupDiLoadClassIcon(&g, &largeIcon, nullptr);
+        if (!smallIcon && !largeIcon)
+            continue;
+        wchar_t buf[64];
+        StringFromGUID2(g, buf, 64);
+        icons.guids.push_back(inf::lower(buf));
+        icons.smallIcons.push_back(smallIcon ? smallIcon : largeIcon);
+        icons.largeIcons.push_back(largeIcon ? largeIcon : smallIcon);
+    }
+    if (haveList)
+        SetupDiDestroyClassImageList(&images);
+    return icons;
+}
+
+void saveStrip(HBITMAP bmp, const wchar_t *name)
+{
+    CImage img;
+    img.Attach(bmp);
+    img.Save((traceDir() + name).c_str(), Gdiplus::ImageFormatPNG);
+    img.Detach();
+}
+
 } // namespace
 
 HICON appIcon(bool large)
@@ -164,33 +228,53 @@ HICON appIcon(bool large)
     return static_cast<HICON>(LoadImageW(AfxGetResourceHandle(), MAKEINTRESOURCEW(IDI_APP), IMAGE_ICON, size, size, LR_SHARED));
 }
 
+int classImage(const std::wstring &classGuid)
+{
+    const ClassIcons &c = classIcons();
+    const std::wstring g = inf::lower(classGuid);
+    for (size_t i = 0; i < c.guids.size(); ++i)
+        if (c.guids[i] == g)
+            return ImgCount + int(i);
+    return ImgDevice;
+}
+
 void loadImages(IImageList *list)
 {
     if (!list)
         return;
-    Image all[ImgCount];
-    for (int i = 0; i < ImgCount; ++i)
-        all[i] = Image(i);
     const COLORREF bg = GetSysColor(COLOR_WINDOW);
-    HBITMAP small16 = makeStrip(16, ImgCount, all, kMaskColor, bg);
-    HBITMAP large32 = makeStrip(32, ImgCount, all, kMaskColor, bg);
-    if (traceEnabled()) {
-        // при включённой трассировке ленты значков сохраняются для просмотра
-        CImage img;
-        img.Attach(small16);
-        img.Save((traceDir() + L"inf_snapin_images16.png").c_str(), Gdiplus::ImageFormatPNG);
-        img.Detach();
-        img.Attach(large32);
-        img.Save((traceDir() + L"inf_snapin_images32.png").c_str(), Gdiplus::ImageFormatPNG);
-        img.Detach();
-    }
+    const IconSource builtIn = [](int n, bool large) { return icon(Image(n), large); };
+    HBITMAP small16 = makeStrip(16, ImgCount, builtIn, kMaskColor, bg);
+    HBITMAP large32 = makeStrip(32, ImgCount, builtIn, kMaskColor, bg);
     // MMC копирует изображения, поэтому рисунки можно сразу удалить
     list->ImageListSetStrip(reinterpret_cast<LONG_PTR *>(small16), reinterpret_cast<LONG_PTR *>(large32), 0, kMaskColor);
+
+    // значки классов устройств — после встроенных, начиная с ImgCount
+    const ClassIcons &c = classIcons();
+    HBITMAP classSmall = nullptr, classLarge = nullptr;
+    if (!c.guids.empty()) {
+        const IconSource classes = [&c](int n, bool large) { return large ? c.largeIcons[size_t(n)] : c.smallIcons[size_t(n)]; };
+        classSmall = makeStrip(16, int(c.guids.size()), classes, kMaskColor, bg);
+        classLarge = makeStrip(32, int(c.guids.size()), classes, kMaskColor, bg);
+        list->ImageListSetStrip(reinterpret_cast<LONG_PTR *>(classSmall), reinterpret_cast<LONG_PTR *>(classLarge), ImgCount,
+                                kMaskColor);
+    }
+    if (traceEnabled()) {
+        // при включённой трассировке ленты значков сохраняются для просмотра
+        saveStrip(small16, L"inf_snapin_images16.png");
+        saveStrip(large32, L"inf_snapin_images32.png");
+        if (classSmall)
+            saveStrip(classSmall, L"inf_snapin_classes16.png");
+    }
     DeleteObject(small16);
     DeleteObject(large32);
+    if (classSmall)
+        DeleteObject(classSmall);
+    if (classLarge)
+        DeleteObject(classLarge);
 }
 
 HBITMAP iconBitmap(Image image, int size, COLORREF mask)
 {
-    return makeStrip(size, 1, &image, mask, GetSysColor(COLOR_WINDOW));
+    return makeStrip(size, 1, [image](int, bool large) { return icon(image, large); }, mask, GetSysColor(COLOR_WINDOW));
 }

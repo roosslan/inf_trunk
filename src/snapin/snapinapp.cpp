@@ -155,6 +155,10 @@ SnapinSettings SnapinSettings::load()
     DWORD type = 0, size = 0;
     if (RegQueryValueExW(key, L"InfVerifMode", nullptr, &type, nullptr, &size) == ERROR_SUCCESS)
         s.infVerifMode = readString(key, L"InfVerifMode");
+    DWORD hidden = 0, hiddenSize = sizeof(hidden);
+    if (RegQueryValueExW(key, L"ShowHiddenDevices", nullptr, &type, reinterpret_cast<BYTE *>(&hidden), &hiddenSize) == ERROR_SUCCESS
+        && type == REG_DWORD)
+        s.showHiddenDevices = hidden != 0;
     if (RegQueryValueExW(key, L"Session", nullptr, &type, nullptr, &size) == ERROR_SUCCESS && type == REG_MULTI_SZ) {
         std::wstring buf(size / sizeof(wchar_t) + 2, L'\0');
         RegQueryValueExW(key, L"Session", nullptr, nullptr, reinterpret_cast<BYTE *>(buf.data()), &size);
@@ -172,6 +176,8 @@ void SnapinSettings::save() const
         return;
     writeString(key, L"InfVerifPath", infVerifPath);
     writeString(key, L"InfVerifMode", infVerifMode);
+    const DWORD hidden = showHiddenDevices ? 1 : 0;
+    RegSetValueExW(key, L"ShowHiddenDevices", 0, REG_DWORD, reinterpret_cast<const BYTE *>(&hidden), sizeof(hidden));
     std::wstring multi;
     for (const std::wstring &f : session)
         multi += f + L'\0';

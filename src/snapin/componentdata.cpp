@@ -60,6 +60,7 @@ enum CommandId : long {
     CmdDevCopyIds,
     CmdExportAll,
     CmdRefreshSystem,
+    CmdShowHidden,
 };
 
 const wchar_t *kFilter = L"INF-файлы (*.inf)|*.inf|Все файлы (*.*)|*.*||";
@@ -97,6 +98,49 @@ wstring bumpVersion(const wstring &v)
     return inf::join(parts, L".");
 }
 
+// Пункт «Справка по <оснастка>» MMC добавляет в меню «Справка» сама, отдельного файла справки
+// у оснастки нет. Меню MMC — всплывающее меню её основного потока: перехватчик сообщений этого
+// потока удаляет пункт, когда меню открывается (WM_INITMENUPOPUP).
+HHOOK g_menuHook = nullptr;
+int g_menuHookUsers = 0;
+
+void removeSnapinHelpItem(HMENU menu)
+{
+    for (int i = GetMenuItemCount(menu) - 1; i >= 0; --i) {
+        wchar_t text[256] = {};
+        if (GetMenuStringW(menu, UINT(i), text, int(std::size(text)), MF_BYPOSITION) <= 0)
+            continue;
+        const wstring item = inf::replaceAll(text, L"&", L"");
+        // «О программе "Редактор INF"...» остаётся
+        if (inf::contains(item, kSnapinName) && (inf::istartsWith(item, L"Справка") || inf::istartsWith(item, L"Help")))
+            DeleteMenu(menu, UINT(i), MF_BYPOSITION);
+    }
+}
+
+LRESULT CALLBACK menuHookProc(int code, WPARAM wParam, LPARAM lParam)
+{
+    if (code == HC_ACTION) {
+        const auto *msg = reinterpret_cast<const CWPSTRUCT *>(lParam);
+        if (msg->message == WM_INITMENUPOPUP && msg->wParam)
+            removeSnapinHelpItem(reinterpret_cast<HMENU>(msg->wParam));
+    }
+    return CallNextHookEx(g_menuHook, code, wParam, lParam);
+}
+
+void installMenuHook()
+{
+    if (g_menuHookUsers++ == 0)
+        g_menuHook = SetWindowsHookExW(WH_CALLWNDPROC, menuHookProc, nullptr, GetCurrentThreadId());
+}
+
+void removeMenuHook()
+{
+    if (g_menuHookUsers > 0 && --g_menuHookUsers == 0 && g_menuHook) {
+        UnhookWindowsHookEx(g_menuHook);
+        g_menuHook = nullptr;
+    }
+}
+
 } // namespace
 
 CComponentData::CComponentData()
@@ -107,6 +151,7 @@ CComponentData::CComponentData()
     m_root->addChild(NodeType::Hardware, L"");
     m_root->addChild(NodeType::DriverPackages, L"");
     m_settings = SnapinSettings::load();
+    setShowHiddenDevices(m_settings.showHiddenDevices);
 }
 
 CComponentData::~CComponentData()
@@ -154,6 +199,8 @@ STDMETHODIMP CComponentData::Initialize(LPUNKNOWN unknown)
         loadImages(images);
         images->Release();
     }
+    installMenuHook();
+    m_menuHook = true;
     return S_OK;
 }
 
@@ -224,6 +271,10 @@ STDMETHODIMP CComponentData::Destroy()
 {
     trace(L"CD::Destroy");
     MANAGE_STATE();
+    if (m_menuHook) {
+        removeMenuHook();
+        m_menuHook = false;
+    }
     // несохранённые изменения: закрыть консоль отменить нельзя, поэтому только «Да/Нет»
     for (auto &f : m_files) {
         if (!f->isModified())
@@ -911,9 +962,19 @@ HRESULT CComponentData::addMenuItems(const Target &t, LPCONTEXTMENUCALLBACK call
         add(CmdAddFile, L"Добавить файл...", L"Добавить файл в пакет драйвера");
         break;
     case NodeType::Hardware:
-    case NodeType::DeviceClass:
+    case NodeType::DeviceClass: {
         add(CmdRefreshSystem, L"Обновить список устройств", L"Заново получить список устройств и драйверов");
+        if (top) {
+            CONTEXTMENUITEM item{};
+            item.strName = const_cast<LPWSTR>(L"Показать скрытые устройства");
+            item.strStatusBarText = const_cast<LPWSTR>(L"Показывать отключённые и скрытые устройства, как в Диспетчере устройств");
+            item.lCommandID = CmdShowHidden;
+            item.lInsertionPointID = CCM_INSERTIONPOINTID_PRIMARY_TOP;
+            item.fFlags = showHiddenDevices() ? MF_CHECKED : 0;
+            callback->AddItem(&item);
+        }
         return S_OK;
+    }
     case NodeType::DriverPackages:
         add(CmdExportAll, L"Экспортировать все сторонние драйверы...", L"Сохранить каждый сторонний пакет в отдельный CAB");
         add(CmdRefreshSystem, L"Обновить список пакетов", L"Заново получить список пакетов драйверов");
@@ -1032,6 +1093,12 @@ HRESULT CComponentData::command(long id, const Target &t)
     case CmdExportAll: cmdExportAll(); break;
     case CmdRefreshSystem:
         reloadSystemSnapshot();
+        systemChanged();
+        break;
+    case CmdShowHidden:
+        m_settings.showHiddenDevices = !showHiddenDevices();
+        m_settings.save();
+        setShowHiddenDevices(m_settings.showHiddenDevices);
         systemChanged();
         break;
     case CmdGotoSection:

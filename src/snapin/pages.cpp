@@ -814,7 +814,11 @@ InfoRows deviceRows(const inf::DeviceInfo &d)
     row(L"Класс", d.classDescription + (d.className.empty() ? L"" : L" (" + d.className + L")"));
     row(L"GUID класса", d.classGuid);
     row(L"Производитель", d.manufacturer);
-    row(L"Состояние", d.hasProblem ? std::format(L"ошибка, код {}", d.problem) : wstring(L"работает"));
+    row(L"Состояние", !d.present   ? wstring(L"не подключено")
+                      : d.hasProblem ? std::format(L"ошибка, код {}", d.problem)
+                                     : wstring(L"работает"));
+    if (d.hidden)
+        row(L"Видимость", L"скрыто в Диспетчере устройств");
     s.push_back({});
     row(L"Поставщик драйвера", d.driverProvider);
     row(L"Версия драйвера", d.driverVersion);

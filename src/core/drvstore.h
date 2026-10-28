@@ -27,6 +27,8 @@ struct DeviceInfo {
     wstring matchingId;     // идентификатор, по которому выбран драйвер
     unsigned long problem = 0;
     bool hasProblem = false;
+    bool present = true;    // устройство подключено
+    bool hidden = false;    // скрыто в Диспетчере устройств (флаг DN_NO_SHOW_IN_DM)
 
     // Сторонний пакет: INF опубликован под именем oemNN.inf
     bool thirdParty() const;
@@ -47,8 +49,9 @@ struct DriverPackage {
 
 bool isThirdPartyInf(const wstring &infName);
 
-// Присутствующие устройства (как в Диспетчере устройств без скрытых)
-std::vector<DeviceInfo> enumerateDevices(wstring *error = nullptr);
+// Устройства, как в Диспетчере устройств. includeHidden = false — только подключённые и не скрытые;
+// true — также отключённые и скрытые («Вид → Показать скрытые устройства»)
+std::vector<DeviceInfo> enumerateDevices(bool includeHidden = false, wstring *error = nullptr);
 
 // Пакеты драйверов; thirdPartyOnly — только oemNN.inf
 std::vector<DriverPackage> enumerateDriverPackages(const std::vector<DeviceInfo> &devices, bool thirdPartyOnly);

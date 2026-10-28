@@ -140,4 +140,5 @@ private:
     int m_nextId = 1;
     bool m_sessionLoaded = false;
     bool m_checkingDisk = false;
+    bool m_menuHook = false;
 };

@@ -492,6 +492,12 @@ TEST(help)
     const int idx = int(st - a->doc.lines().data());
     CHECK(contains(describeEntry(*a, idx), L"SERVICE_DEMAND_START"));
     CHECK(contains(describeSection(*a, L"Sample_Service_Inst"), L"AddService"));
+    // у любой записи есть описание, в том числе у нестандартных директив
+    const auto b = Analysis::run(L"[Version]\nSignature=\"$Windows NT$\"\nCompatible=1\nVendorFlag=2\n");
+    for (const wchar_t *key : {L"Compatible", L"VendorFlag"}) {
+        const InfLine *l = b->doc.entry(L"Version", key);
+        CHECK(l && !describeEntry(*b, int(l - b->doc.lines().data())).empty());
+    }
 }
 
 // ---------------------------------------------------------------- правка
@@ -777,8 +783,19 @@ TEST(systemDevicesAndPackages)
     CHECK(isThirdPartyInf(L"oem12.inf") && isThirdPartyInf(L"C:\\Windows\\INF\\OEM3.INF"));
     CHECK(!isThirdPartyInf(L"usbport.inf") && !isThirdPartyInf(L"oemx.inf"));
     wstring error;
-    const auto devices = enumerateDevices(&error);
+    const auto devices = enumerateDevices(false, &error);
     CHECK_MSG(!devices.empty(), error);
+    for (const DeviceInfo &d : devices)
+        CHECK(d.present && !d.hidden);
+    // со скрытыми устройствами список не короче, а все видимые в нём есть
+    const auto all = enumerateDevices(true, &error);
+    CHECK(all.size() >= devices.size());
+    int notPresent = 0, hidden = 0;
+    for (const DeviceInfo &d : all) {
+        notPresent += d.present ? 0 : 1;
+        hidden += d.hidden ? 1 : 0;
+    }
+    std::printf("      со скрытыми: %zu (отключённых %d, скрытых %d)\n", all.size(), notPresent, hidden);
     const auto packages = enumerateDriverPackages(devices, true);
     std::printf("      устройств: %zu, сторонних пакетов: %zu\n", devices.size(), packages.size());
     for (const DriverPackage &p : packages)

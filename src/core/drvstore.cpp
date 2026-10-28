@@ -138,10 +138,10 @@ wstring windowsInfDir()
     return wstring(buf) + L"\\INF\\";
 }
 
-std::vector<DeviceInfo> enumerateDevices(wstring *error)
+std::vector<DeviceInfo> enumerateDevices(bool includeHidden, wstring *error)
 {
     std::vector<DeviceInfo> out;
-    HDEVINFO set = SetupDiGetClassDevsW(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | DIGCF_PRESENT);
+    HDEVINFO set = SetupDiGetClassDevsW(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | (includeHidden ? 0 : DIGCF_PRESENT));
     if (set == INVALID_HANDLE_VALUE) {
         if (error)
             *error = lastErrorText(GetLastError());
@@ -183,8 +183,18 @@ std::vector<DeviceInfo> enumerateDevices(wstring *error)
         }
         if (rawProperty(set, d, DEVPKEY_Device_ProblemCode, type, buf) && type == DEVPROP_TYPE_UINT32)
             info.problem = *reinterpret_cast<const ULONG *>(buf.data());
-        if (rawProperty(set, d, DEVPKEY_Device_DevNodeStatus, type, buf) && type == DEVPROP_TYPE_UINT32)
-            info.hasProblem = (*reinterpret_cast<const ULONG *>(buf.data()) & DN_HAS_PROBLEM) != 0;
+        if (rawProperty(set, d, DEVPKEY_Device_DevNodeStatus, type, buf) && type == DEVPROP_TYPE_UINT32) {
+            const ULONG status = *reinterpret_cast<const ULONG *>(buf.data());
+            info.hasProblem = (status & DN_HAS_PROBLEM) != 0;
+            info.hidden = (status & DN_NO_SHOW_IN_DM) != 0;
+        }
+        if (rawProperty(set, d, DEVPKEY_Device_IsPresent, type, buf) && type == DEVPROP_TYPE_BOOLEAN)
+            info.present = *reinterpret_cast<const DEVPROP_BOOLEAN *>(buf.data()) != DEVPROP_FALSE;
+        // у отключённого устройства нет узла: признак ошибки к нему не относится
+        if (!info.present)
+            info.hasProblem = false;
+        if (!includeHidden && info.hidden)
+            continue;
         if (info.classDescription.empty())
             info.classDescription = info.className.empty() ? L"Прочие устройства" : info.className;
         out.push_back(std::move(info));

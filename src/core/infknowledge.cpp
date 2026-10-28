@@ -143,6 +143,9 @@ const std::vector<DirectiveInfo> &directives()
 {
     static const std::vector<DirectiveInfo> list = {
         // [Version]
+        {L"Compatible", L"Version", L"Compatible=1",
+         L"Нестандартная директива: в документации Microsoft по INF её нет, установщик Windows её не обрабатывает. "
+         L"Встречается в INF Intel; читается программами производителя."},
         {L"Signature", L"Version", L"Signature=\"$Windows NT$\"",
          L"Подпись INF. Для современных Windows — \"$Windows NT$\"; \"$Chicago$\" допустима, но устарела."},
         {L"Class", L"Version", L"Class=имя-класса", L"Имя класса установки устройства. Должно соответствовать ClassGuid."},

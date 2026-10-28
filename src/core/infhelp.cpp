@@ -71,6 +71,14 @@ wstring describeEntry(const Analysis &a, int logicalLine)
             out.push_back(d->name + L" (" + d->where + L")");
             out.push_back(L"Синтаксис: " + d->syntax);
             out.push_back(d->help);
+        } else if (role != SectionRole::Unknown) {
+            // секция известна, а директива нет: она не из документированного синтаксиса INF
+            out.push_back(std::format(L"{} — директива, которой нет в документированном синтаксисе INF для секции этого "
+                                      L"вида ({}). Установщик Windows неизвестные директивы пропускает; обычно их "
+                                      L"читают программы производителя.",
+                                      key, roleName(role)));
+        } else {
+            out.push_back(std::format(L"Запись {} в секции [{}]. Значение задаётся после знака «=».", key, section));
         }
     } else if (role == SectionRole::AddReg || role == SectionRole::DelReg) {
         out.push_back(L"Запись реестра: корень, [подключ], [имя значения], [флаги], [значение].");
